@@ -1,0 +1,7 @@
+﻿CO_CATEGAD;NO_CATEGAD;SG_CATEGAD
+1;Pública Federal;PBFED
+2;Pública Estadual;PBEST
+3;Pública Municipal;PBMUN
+4;Privada com fins lucrativos;PVcFL
+5;Privada sem fins lucrativos;PVsFL
+7;Especial;ESP

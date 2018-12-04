@@ -1,0 +1,8 @@
+﻿COL_QUESDIS;NO_QUESDIS;CTG_QUESDIS
+NT_FG_D1_PT;Questão Discursiva 01 - LP;Formação Geral
+NT_FG_D1_CT;Questão Discursiva 01 - CONT;Formação Geral
+NT_FG_D2_PT;Questão Discursiva 02 - LP;Formação Geral
+NT_FG_D2_CT;Questão Discursiva 02 - CONT;Formação Geral
+NT_CE_D1;Questão Discursiva 03;Componente Específico
+NT_CE_D2;Questão Discursiva 04;Componente Específico
+NT_CE_D3;Questão Discursiva 05;Componente Específico

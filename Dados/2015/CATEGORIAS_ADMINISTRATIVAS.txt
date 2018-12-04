@@ -1,0 +1,14 @@
+﻿CO_CATEGAD;NO_CATEGAD;SG_CATEGAD
+93;Pessoa Jurídica de Direito Público - Federal;PJ.DPb.Fed
+115;Pessoa Jurídica de Direito Público - Estadual;PJ.DPb.Est
+116;Pessoa Jurídica de Direito Público - Municipal;PJ.DPb.Mun
+118;Pessoa Jurídica de Direito Privado - Com fins lucrativos - Sociedade Civil;PJ.DPv.cFL.SC
+121;Pessoa Jurídica de Direito Privado - Sem fins lucrativos - Fundação;PJ.DPv.sFL.Fund
+10001;Pessoa Jurídica de Direito Público - Estadual;PJ.DPb.Est
+10002;Pessoa Jurídica de Direito Público - Federal;PJ.DPb.Fed
+10003;Pessoa Jurídica de Direito Público - Municipal;PJ.DPb.Muni
+10005;Privada com fins lucrativos;PVcFL
+10006;Pessoa Jurídica de Direito Privado - Com fins lucrativos - Sociedade Mercantil ou Comercial;PJ.DPv.cFL.SMC
+10007;Pessoa Jurídica de Direito Privado - Sem fins lucrativos - Associação de Utilidade Pública;PJ.DPv.sFL.AUP
+10008;Privada sem fins lucrativos;PVsFL
+10009;Pessoa Jurídica de Direito Privado - Sem fins lucrativos - Sociedade;PJ.DPv.sFL.S
