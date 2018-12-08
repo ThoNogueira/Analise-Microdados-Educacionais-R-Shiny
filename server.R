@@ -449,8 +449,7 @@ server <- function(input, output) {
             }))
 
             plot_output_list_discursivas <- list()
-            print(mediasDiscursivas)
-            print(rotulosDasBarrasDosGraficos)
+
             for(nomeDaMedidaDiscursiva in NOMES_DAS_DIMENSOES_DE_QUESTOES_DISCURSIVAS)
             {
                 # Seleciona as opções escolhidas no parâmetro correspondente à medida corrente
@@ -476,7 +475,6 @@ server <- function(input, output) {
                             valores = as.numeric(c(paste(mediasDaQuestaoCorrente)))
                         )
 
-                        print(dadosDoGrafico)
 
                         dadosDoGrafico$Categoria <- factor(dadosDoGrafico$Categoria, levels = unique(dadosDoGrafico$Categoria))
 
@@ -500,15 +498,12 @@ server <- function(input, output) {
             plot_output_list_objetivas <- list()
 
             # TODO: Gerar gráficos das questões objetivas
-
-            # print(listaDeAcertosObjetivas)
-            # print(listaDeErrosObjetivas)
             
             # for(nomeDaMedidaObjetiva in NOMES_DAS_DIMENSOES_DE_QUESTOES_OBJETIVAS)
             # {
             #      # Seleciona as opções escolhidas no parâmetro correspondente à medida corrente
             #     opcoesEscolhidasDaMedidaCorrente <- input[[nomeDaMedidaObjetiva]]
-            #     print(opcoesEscolhidasDaMedidaCorrente)
+
             #     # Para cada opção escolhida da medida corrente
             #     plot_output_list_discursivas <- lapply(opcoesEscolhidasDaMedidaCorrente, function(opcaoEscolhidaDaMedidaCorrente) {
                         
@@ -516,26 +511,18 @@ server <- function(input, output) {
             #         plot_output_object <- plotOutput(plotname)
             #         plot_output_object <- renderPlot({
                         
-            #             print("renderPlotObjetivo")
             #             mediasDaQuestaoCorrente <- list()
 
             #             for(contexto in contextosDasBarrasDosGraficos[[opcaoEscolhidaDaMedidaCorrente]])
             #             {
             #                 mediasDaQuestaoCorrente <- c(mediasDaQuestaoCorrente, listaDeAcertosObjetivas[[contexto]][[opcaoEscolhidaDaMedidaCorrente]])
-            #                 print(listaDeAcertosObjetivas[[contexto]])
-            #                 print(listaDeAcertosObjetivas[[contexto]][[opcaoEscolhidaDaMedidaCorrente]])
             #             }
-
-            #                print(mediasDaQuestaoCorrente)
                      
 
             #             dadosDoGrafico <- data.frame(
             #                 Categoria = rotulosDasBarrasDosGraficos,
             #                 valores = as.numeric(c(paste(mediasDaQuestaoCorrente)))
             #             )
-            #             print(rotulosDasBarrasDosGraficos)
-            #             print(as.numeric(c(paste(mediasDaQuestaoCorrente))))
-            #             print(dadosDoGrafico)
 
             #             dadosDoGrafico$Categoria <- factor(dadosDoGrafico$Categoria, levels = unique(dadosDoGrafico$Categoria))
                         
@@ -564,8 +551,6 @@ server <- function(input, output) {
             # {
             #     plot_output_list <- c(plot_output_list, plot_output_list_objetivas)
             # }
-
-            print(length(plot_output_list))
 
             if(isTruthy(plot_output_list)) 
             {  
