@@ -27,7 +27,7 @@ server <- function(input, output) {
         ###################################################### CONFIGURAÇÃO: ####################################################
 
         # Definir o diretório dos dados:
-        diretorioDosDados <- "C:/Users/Thiago/Documents/Google Drive/TCC2/TCC 2 - Thiago Nogueira/MicroDadosENADE/AnalizadorGenerico/Dados/"
+        diretorioDosDados <- "C:/Users/Thiago/Documents/Projetos/FFB-TCCII/AnaliseDeMicrodadosEducacionais NOVO/Dados/"
         # Definir o nome da Fato:
         NOME_DA_FATO <- "MICRODADOS_ENADE"
         COLUNA_DE_CODIGO_DA_INSTITUICAO <<- "CO_IES"
@@ -215,7 +215,9 @@ server <- function(input, output) {
             mediasDiscursivas <- list()
 
             rotulosDasBarrasDosGraficos <- list()
-            contextosDasBarrasDosGraficos <- list()
+            contextosDasBarrasDosGraficosDiscursivas <- list()
+            contextosDasBarrasDosGraficosObjetivas <- list()
+            contextoEstaDefinido <- FALSE
 
             # Considera os primeiros microdadosFiltrados como sendo todos os  MICRODADOS
             microdadosFiltrados <- MICRODADOS
@@ -227,6 +229,8 @@ server <- function(input, output) {
             listaDeErrosObjetivas <- list()
 
             totalDeAlunosNaInstituicaoPrincipal <- NULL
+
+            gabaritoPorQuestao <- list()
 
             # Para cada dimensão configurada
             for(nomeDaDimensao in NOMES_DAS_DIMENSOES)
@@ -288,7 +292,7 @@ server <- function(input, output) {
                         # Para cada opção escolhida da medida corrente
                         for(opcaoEscolhidaDaMedidaCorrente in opcoesEscolhidasDaMedidaCorrente)
                         {
-                            contextosDasBarrasDosGraficos[[opcaoEscolhidaDaMedidaCorrente]] <- c(contextosDasBarrasDosGraficos[[opcaoEscolhidaDaMedidaCorrente]], siglaDaOpcaoDaDimensaoParaRotulo)
+                            contextosDasBarrasDosGraficosDiscursivas[[opcaoEscolhidaDaMedidaCorrente]] <- c(contextosDasBarrasDosGraficosDiscursivas[[opcaoEscolhidaDaMedidaCorrente]], siglaDaOpcaoDaDimensaoParaRotulo)
 
                             # Calcula a média das notas da questão correspondente à opção escolhida corrente
                             # considerando como contexto os dados filtrados pela opção corrente da dimensão corrente
@@ -316,6 +320,9 @@ server <- function(input, output) {
                         # Para cada opção escolhida da medida corrente
                         for(opcaoEscolhidaDaMedidaCorrente in opcoesEscolhidasDaMedidaCorrente)
                         {
+                           
+                            contextosDasBarrasDosGraficosObjetivas[[opcaoEscolhidaDaMedidaCorrente]] <- c(contextosDasBarrasDosGraficosObjetivas[[opcaoEscolhidaDaMedidaCorrente]], siglaDaOpcaoDaDimensaoParaRotulo)
+
                             if(ehContextoDaInstituicaoPrincial)
                             {
                                 listaDeErrosObjetivas[[opcaoEscolhidaDaMedidaCorrente]][["A"]] <- 0
@@ -326,20 +333,14 @@ server <- function(input, output) {
                                 listaDeErrosObjetivas[[opcaoEscolhidaDaMedidaCorrente]][["N"]] <- 0
                             }
 
-                            n_item_a <- 0
-                            n_item_b <- 0
-                            n_item_c <- 0
-                            n_item_d <- 0
-                            n_item_e <- 0
-                            n_item_n <- 0
-                            n_acertos_comp <- 0 #Posição do Brasil
-
                             listaDeAcertosObjetivas[[siglaDaOpcaoDaDimensaoParaRotulo]][[opcaoEscolhidaDaMedidaCorrente]] <- 0
 
                             # Calcula a média das notas da questão correspondente à opção escolhida corrente
                             # considerando como contexto os dados filtrados pela opção corrente da dimensão corrente
 
                             item_correto <- substr(gabarito, opcaoEscolhidaDaMedidaCorrente, opcaoEscolhidaDaMedidaCorrente)
+                            gabaritoPorQuestao[[opcaoEscolhidaDaMedidaCorrente]] <- item_correto
+
                             if (item_correto %in% c("A", "B", "C", "D", "E"))
                             {
                                 totalDeAlunosNoContexto <- nrow(microdadosFiltradosPelaOpcaoDaDimensaoCorrente)
@@ -408,27 +409,6 @@ server <- function(input, output) {
                                     listaDeErrosObjetivas[[opcaoEscolhidaDaMedidaCorrente]][["N"]] <- round(listaDeErrosObjetivas[[opcaoEscolhidaDaMedidaCorrente]][["N"]]/totalDeAlunosNaInstituicaoPrincipal, digits=2)*100
                                 }
                             }
-                            else
-                            {
-                                # TODO: Representação do gráfico de questões anuladas.
-
-                                # nomeDaQuestaoObjetiva <- paste0("Questão ", identificador)
-                                # if(item_correto == "Z")
-                                # {
-                                #     nomeDaQuestaoObjetiva <- paste0(nomeDaQuestaoObjetiva, " (Questão excluída devido a anulação)")
-                                # }
-                                # else if(item_correto == "X")
-                                # {
-                                #     nomeDaQuestaoObjetiva <- paste0(nomeDaQuestaoObjetiva, " (Questão excluída devido ao coeficiente pontobisserial menor que 0,20)")
-                                # }
-                                # else if(item_correto == "N")
-                                # {
-                                #     nomeDaQuestaoObjetiva <- paste0(nomeDaQuestaoObjetiva, " (Questão não se aplica ao grupo de curso)")
-                                # }   
-
-                                # df <- data.frame()
-                                # ggplot(df) + geom_point() + geom_blank() + ggtitle(nomeDaQuestaoObjetiva)
-                            }
                         }
                     }
                 }
@@ -449,40 +429,56 @@ server <- function(input, output) {
             }))
 
             plot_output_list_discursivas <- list()
-
             for(nomeDaMedidaDiscursiva in NOMES_DAS_DIMENSOES_DE_QUESTOES_DISCURSIVAS)
             {
+                nomeDaColunaDaDimensaoDiscursivaID <- COLUNAS_POR_DIMENSAO[[paste0(nomeDaMedidaDiscursiva,".ID")]]
+                dimensaoDiscursivaCATEGORIA <- ""
+                if(paste0(nomeDaMedidaDiscursiva,".CATEGORIA") %in% names(COLUNAS_POR_DIMENSAO))
+                {
+                    dimensaoDiscursivaCATEGORIA <- COLUNAS_POR_DIMENSAO[[paste0(nomeDaMedidaDiscursiva,".CATEGORIA")]]
+                }
+
+                dimensaoDiscursivaNOME <- ""
+                if(paste0(nomeDaMedidaDiscursiva,".NOME") %in% names(COLUNAS_POR_DIMENSAO))
+                {
+                    dimensaoDiscursivaNOME <- COLUNAS_POR_DIMENSAO[[paste0(nomeDaMedidaDiscursiva,".NOME")]]
+                }
+
                 # Seleciona as opções escolhidas no parâmetro correspondente à medida corrente
-                opcoesEscolhidasDaMedidaCorrente <- input[[nomeDaMedidaDiscursiva]]
-
+                opcoesEscolhidasDaMedidaDiscursivaCorrente <- input[[nomeDaMedidaDiscursiva]]
                 # Para cada opção escolhida da medida corrente
-                plot_output_list_discursivas <- lapply(opcoesEscolhidasDaMedidaCorrente, function(opcaoEscolhidaDaMedidaCorrente) {
+                plot_output_list_discursivas <- lapply(opcoesEscolhidasDaMedidaDiscursivaCorrente, function(opcaoEscolhidaDaMedidaDiscursivaCorrente) {
 
-                    plotname <- paste0("plot", opcaoEscolhidaDaMedidaCorrente)
-                    plot_output_object <- plotOutput(plotname)
-                    plot_output_object <- renderPlot({
-                        
-                        mediasDaQuestaoCorrente <- list()
+                    plotname <- paste0("plot", opcaoEscolhidaDaMedidaDiscursivaCorrente)
 
-                        for(contexto in contextosDasBarrasDosGraficos[[opcaoEscolhidaDaMedidaCorrente]])
+                    plot_output_object_discursiva <- plotOutput(plotname)
+
+                    plot_output_object_discursiva <- renderPlot({
+                        mediasDaQuestaoDiscursivaCorrente <- list()
+
+                        for(contextoDiscursiva in contextosDasBarrasDosGraficosDiscursivas[[opcaoEscolhidaDaMedidaDiscursivaCorrente]])
                         {
-                            mediasDaQuestaoCorrente <- c(mediasDaQuestaoCorrente, mediasDiscursivas[[contexto]][[opcaoEscolhidaDaMedidaCorrente]])
+                            mediasDaQuestaoDiscursivaCorrente <- c(mediasDaQuestaoDiscursivaCorrente, mediasDiscursivas[[contextoDiscursiva]][[opcaoEscolhidaDaMedidaDiscursivaCorrente]])
                         }
                         
-                        dadosDoGrafico <- data.frame(
+                        dadosDoGraficoDiscursiva <- data.frame(
                             Categoria = nomes_grafico_base_discursivas,
                             Subcategoria = c(rep(c("Com Nota", "Sem Nota"), (length(nomes_grafico_base_discursivas)/2))),
-                            valores = as.numeric(c(paste(mediasDaQuestaoCorrente)))
+                            valores = as.numeric(c(paste(mediasDaQuestaoDiscursivaCorrente)))
                         )
 
+                        dadosDoGraficoDiscursiva$Categoria <- factor(dadosDoGraficoDiscursiva$Categoria, levels = unique(dadosDoGraficoDiscursiva$Categoria))
 
-                        dadosDoGrafico$Categoria <- factor(dadosDoGrafico$Categoria, levels = unique(dadosDoGrafico$Categoria))
+                        graficoDiscursivas <<- ggplot(dadosDoGraficoDiscursiva, aes(x=Categoria, y=valores, fill=Subcategoria)) 
+                        categoriaDaQuestaoDiscursiva <- ""
+                        if(dimensaoCATEGORIA != "")
+                        {
+                            opcaoEscolhidaDaMedidaDiscursivaCorrenteObjeto <- dimensoes[[nomeDaMedidaDiscursiva]] %>% filter(UQ(as.name(nomeDaColunaDaDimensaoDiscursivaID)) == opcaoEscolhidaDaMedidaDiscursivaCorrente)
+                            categoriaDaQuestaoDiscursiva <- paste(opcaoEscolhidaDaMedidaDiscursivaCorrenteObjeto[[dimensaoDiscursivaNOME]], opcaoEscolhidaDaMedidaDiscursivaCorrenteObjeto[[dimensaoDiscursivaCATEGORIA]]) 
+                        }
 
-                        grafico <<- ggplot(dadosDoGrafico, aes(x=Categoria, y=valores, fill=Subcategoria)) 
-
-                        grafico + 
-                        # TODO: Definir nome da questão com sua categoria
-                        ggtitle("") +
+                        graficoDiscursivas + 
+                        ggtitle(categoriaDaQuestaoDiscursiva) +
                         geom_bar(stat="identity", width=0.5, colour="black", position=position_dodge()) +
                         geom_text(aes(label=valores), vjust=-1, position = position_dodge(0.5), size=3.5) +
                         scale_fill_brewer(palette="Paired") +
@@ -492,54 +488,98 @@ server <- function(input, output) {
                         scale_y_continuous(name="Nota Média", limits=c(0, 100)) +
                         guides(fill=guide_legend(title="Legenda"))
                     })
+
                 })
             }
-
             plot_output_list_objetivas <- list()
-
-            # TODO: Gerar gráficos das questões objetivas
             
-            # for(nomeDaMedidaObjetiva in NOMES_DAS_DIMENSOES_DE_QUESTOES_OBJETIVAS)
-            # {
-            #      # Seleciona as opções escolhidas no parâmetro correspondente à medida corrente
-            #     opcoesEscolhidasDaMedidaCorrente <- input[[nomeDaMedidaObjetiva]]
+            for(nomeDaMedidaObjetiva in NOMES_DAS_DIMENSOES_DE_QUESTOES_OBJETIVAS)
+            {
+                nomeDaColunaDaDimensaoID <- COLUNAS_POR_DIMENSAO[[paste0(nomeDaMedidaObjetiva,".ID")]]
+             
+                dimensaoCATEGORIA <- ""
+                if(paste0(nomeDaMedidaObjetiva,".CATEGORIA") %in% names(COLUNAS_POR_DIMENSAO))
+                {
+                    dimensaoCATEGORIA <- COLUNAS_POR_DIMENSAO[[paste0(nomeDaMedidaObjetiva,".CATEGORIA")]]
+                }
 
-            #     # Para cada opção escolhida da medida corrente
-            #     plot_output_list_discursivas <- lapply(opcoesEscolhidasDaMedidaCorrente, function(opcaoEscolhidaDaMedidaCorrente) {
-                        
-            #         plotname <- paste0("plot", opcaoEscolhidaDaMedidaCorrente)
-            #         plot_output_object <- plotOutput(plotname)
-            #         plot_output_object <- renderPlot({
-                        
-            #             mediasDaQuestaoCorrente <- list()
+                dimensaoNOME <- ""
+                if(paste0(nomeDaMedidaObjetiva,".NOME") %in% names(COLUNAS_POR_DIMENSAO))
+                {
+                    dimensaoNOME <- COLUNAS_POR_DIMENSAO[[paste0(nomeDaMedidaObjetiva,".NOME")]]
+                }
 
-            #             for(contexto in contextosDasBarrasDosGraficos[[opcaoEscolhidaDaMedidaCorrente]])
-            #             {
-            #                 mediasDaQuestaoCorrente <- c(mediasDaQuestaoCorrente, listaDeAcertosObjetivas[[contexto]][[opcaoEscolhidaDaMedidaCorrente]])
-            #             }
-                     
-
-            #             dadosDoGrafico <- data.frame(
-            #                 Categoria = rotulosDasBarrasDosGraficos,
-            #                 valores = as.numeric(c(paste(mediasDaQuestaoCorrente)))
-            #             )
-
-            #             dadosDoGrafico$Categoria <- factor(dadosDoGrafico$Categoria, levels = unique(dadosDoGrafico$Categoria))
+                # Seleciona as opções escolhidas no parâmetro correspondente à medida corrente
+                opcoesEscolhidasDaMedidaCorrente <- input[[nomeDaMedidaObjetiva]]
+                # Para cada opção escolhida da medida corrente
+                plot_output_list_objetivas <- lapply(opcoesEscolhidasDaMedidaCorrente, function(opcaoEscolhidaDaMedidaCorrente) {
                         
-            #             grafico <<- ggplot(dadosDoGrafico, aes(x=Categoria, y=valores)) 
+                    plotname <- paste0("plot", opcaoEscolhidaDaMedidaCorrente)
+                    plot_output_object <- plotOutput(plotname)
+                    plot_output_object <- renderPlot({
                         
-            #             grafico + 
-            #             # TODO: Definir nome da questão com sua categoria
-            #             ggtitle("") +
-            #             geom_bar(stat="identity", width=0.5, color="black", position=position_dodge(), fill="steelblue") +
-            #             geom_text(aes(label=valores), vjust=-1, position = position_dodge(0.5), size=3.5) +
-            #             theme_minimal() +
-            #             theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
-            #             xlab("") +
-            #             scale_y_continuous(name="Acertos (%)", limits=c(0, 100))                        
-            #         })
-            #     })
-            # }
+                        mediasDaQuestaoCorrente <- list()
+
+                        for(contexto in contextosDasBarrasDosGraficosObjetivas[[opcaoEscolhidaDaMedidaCorrente]])
+                        {
+                            mediasDaQuestaoCorrente <- c(mediasDaQuestaoCorrente, listaDeAcertosObjetivas[[contexto]][[opcaoEscolhidaDaMedidaCorrente]])
+                        }
+
+                        for(erroObjetiva in names(listaDeErrosObjetivas[[opcaoEscolhidaDaMedidaCorrente]]))
+                        {
+                            mediasDaQuestaoCorrente <- c(mediasDaQuestaoCorrente, listaDeErrosObjetivas[[opcaoEscolhidaDaMedidaCorrente]][[erroObjetiva]])
+                        }
+
+                        rotulosDasBarrasDosGraficos <- c(rotulosDasBarrasDosGraficos, names(listaDeErrosObjetivas[[opcaoEscolhidaDaMedidaCorrente]]))
+
+                        dadosDoGrafico <- data.frame(
+                            Categoria = rotulosDasBarrasDosGraficos,
+                            valores = as.numeric(c(paste(mediasDaQuestaoCorrente)))
+                        )
+
+                        dadosDoGrafico$Categoria <- factor(dadosDoGrafico$Categoria, levels = unique(dadosDoGrafico$Categoria))
+                        
+                        grafico <<- ggplot(dadosDoGrafico, aes(x=Categoria, y=valores)) 
+                        
+                        categoriaDaQuestaoObjetiva <- ""
+                        if(dimensaoCATEGORIA != "")
+                        {
+                            opcaoEscolhidaDaMedidaObjetivaCorrenteObjeto <- dimensoes[[nomeDaMedidaObjetiva]] %>% filter(UQ(as.name(nomeDaColunaDaDimensaoID)) == opcaoEscolhidaDaMedidaCorrente)
+
+                            opcaoCorreta <- gabaritoPorQuestao[[opcaoEscolhidaDaMedidaCorrente]];
+                            print(opcaoCorreta)
+                            if (!(opcaoCorreta %in% c("A", "B", "C", "D", "E")))
+                            {
+                                print(opcaoCorreta)
+                                if(opcaoCorreta == "Z")
+                                {
+                                    opcaoCorreta <- "Questão excluída devido a anulação"
+                                }
+                                else if(opcaoCorreta == "X")
+                                {
+                                    opcaoCorreta <- "Questão excluída devido ao coeficiente pontobisserial menor que 0,20"
+                                }
+                                else if(opcaoCorreta == "N")
+                                {
+                                    opcaoCorreta <- "Questão não se aplica ao grupo de curso"
+                                }
+                            }
+                            
+                            print(opcaoCorreta)
+                            categoriaDaQuestaoObjetiva <- paste0(opcaoEscolhidaDaMedidaObjetivaCorrenteObjeto[[dimensaoNOME]], "(", opcaoCorreta, ") ", opcaoEscolhidaDaMedidaObjetivaCorrenteObjeto[[dimensaoCATEGORIA]]) 
+                        }   
+
+                        grafico + 
+                        ggtitle(categoriaDaQuestaoObjetiva) +
+                        geom_bar(stat="identity", width=0.5, color="black", position=position_dodge(), fill="steelblue") +
+                        geom_text(aes(label=valores), vjust=-1, position = position_dodge(0.5), size=3.5) +
+                        theme_minimal() +
+                        theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
+                        xlab("") +
+                        scale_y_continuous(name="Acertos (%)", limits=c(0, 100))                        
+                    })
+                })
+            }
 
             plot_output_list <- NULL
             if(isTruthy(plot_output_list_discursivas))
@@ -547,10 +587,10 @@ server <- function(input, output) {
                 plot_output_list <- plot_output_list_discursivas
             }
 
-            # if(isTruthy(plot_output_list_objetivas))
-            # {
-            #     plot_output_list <- c(plot_output_list, plot_output_list_objetivas)
-            # }
+            if(isTruthy(plot_output_list_objetivas))
+            {
+                plot_output_list <- c(plot_output_list, plot_output_list_objetivas)
+            }
 
             if(isTruthy(plot_output_list)) 
             {  
